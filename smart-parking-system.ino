@@ -1,12 +1,12 @@
-#include <Display.h>
+#include <SPS_Display.h>
 
-Display display;
+SPS_Display display(0x27, 45);
 
 void setup() {
-    display.init();
-    display.render();
+  display.init();
 }
 
 void loop() {
-    // Your loop code here
+  // Your loop code here
+  display.render(1, 1, 0, 1, 0, 0);
 }

@@ -25,8 +25,9 @@ public:
 
     /**
      * Setup RFID RC522 connection. Must be called before using other functions
+     * @param   ServoPin
      */
-    void init();
+    void init(int ServoPin);
 
 private:
     MFRC522 rfid;

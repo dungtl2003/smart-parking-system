@@ -69,8 +69,8 @@ void SPS_Display::animate()
 
 void SPS_Display::printSlot(int slot, int state)
 {
-    char *buf = (char *)malloc(10 * sizeof(char));
-    snprintf(buf, 17, "S%d:%s", slot, state == 1 ? "Fill" : "Empty");
+    char *buf = (char *)malloc(8 * sizeof(char));
+    snprintf(buf, 17, "S%d:%s", slot, state == 1 ? "Fill " : "Empty");
 
     lcd.print(buf);
     free(buf);

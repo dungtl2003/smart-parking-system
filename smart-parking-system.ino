@@ -1,17 +1,18 @@
-#include <SPS_GateControl.h>
+// #include <SPS_GateControl.h>
 #include <Servo.h>
 #include <SPS_Display.h>
 #include <SPS_Infrared_Sensor.h>
 #include <SoftwareSerial.h>
 
-#define ir_enter 4
-#define ir_exit 11
-#define ir_car1 5
-#define ir_car2 6
-#define ir_car3 7
-#define ir_car4 8
-#define ir_car5 9
-#define ir_car6 10
+
+#define ir_car1 2
+#define ir_car2 3
+#define ir_car3 4
+#define ir_car4 5
+#define ir_car5 6
+#define ir_car6 7
+#define ir_enter 8
+#define ir_exit 9
 
 int slot = 6;
 int* slotState;
@@ -19,11 +20,9 @@ int enterState;
 int exitState;
 SPS_InfraredSensor infraredSensor(ir_car1, ir_car2, ir_car3, ir_car4, ir_car5, ir_car6, ir_enter, ir_exit);
 SPS_Display display(0x27, 45);  
-SPS_GateControl gate1();
-SPS_GateControl gate2();
-
-Servo servoLeft;
-Servo servoRight;
+SPS_GateControl entranceGate(1, 2);
+SPS_GateControl exitGate(11, 12);
+SoftwareSerial mySerial();
 
 void setup() {
     Serial.begin(9600);

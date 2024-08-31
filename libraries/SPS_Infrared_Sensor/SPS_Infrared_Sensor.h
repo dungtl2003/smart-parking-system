@@ -22,26 +22,28 @@ class SPS_InfraredSensor {
 		void init();
 		
 		/**
-		* Get all parking slot sensor's state
+		* Get all parking slot sensor's state. 1 mean that parking slot is fill and vice versa
 		*/
-		int* getSlotState();
+		int* getSlotStates();
 
 		/**
-		* Get all enter sensor's state
+		* Get enter sensor's state. 1 mean there is an obstacle and vice versa
 		*/
-		int getEnterState();
+		int getEnterSensorState();
+
 
 		/**
-		* Get all exit sensor's state
+		* Get exit sensor's state. 1 mean there is an obstacle and vice versa
 		*/
-		int getExitState();
+		int getExitSensorState();
+
     private:
 		int parkingSensors[6];
 		int enterSensor;
 		int exitSensor;
-		int slotState[6];
-		int enterState;
-		int exitState;
+		int slotStates[6];
+		int enterSensorState;
+		int exitSensorState;
 };
 
 #endif

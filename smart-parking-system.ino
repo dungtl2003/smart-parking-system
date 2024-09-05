@@ -1,84 +1,106 @@
-// #include <SPS_GateControl.h>
-#include <Servo.h>
+#include <SPS_Gate.h>
 #include <SPS_Display.h>
 #include <SPS_Infrared_Sensor.h>
-#include <SoftwareSerial.h>
 
+#define OPEN 1
+#define CLOSE 0
 
-#define ir_car1 2
-#define ir_car2 3
-#define ir_car3 4
-#define ir_car4 5
-#define ir_car5 6
-#define ir_car6 7
-#define ir_enter 8
-#define ir_exit 9
+#define IR_CAR_1 2
+#define IR_CAR_2 3
+#define IR_CAR_3 4
+#define IR_CAR_4 5
+#define IR_CAR_5 6
+#define IR_CAR_6 7
+#define IR_ENTRY_FRONT 8
+#define IR_ENTRY_BACK 9
+#define IR_EXIT_FRONT 10
+#define IR_EXIT_BACK 11
 
-int slot = 6;
-int* slotState;
-int enterState;
-int exitState;
-SPS_InfraredSensor infraredSensor(ir_car1, ir_car2, ir_car3, ir_car4, ir_car5, ir_car6, ir_enter, ir_exit);
-SPS_Display display(0x27, 45);  
-SPS_GateControl entranceGate(1, 2);
-SPS_GateControl exitGate(11, 12);
-SoftwareSerial mySerial();
+#define SERVO_ENTER_PIN 12
+#define SERVO_EXIT_PIN 13
+#define SERVO_DELAY_MS 0
+
+#define LCD_ADDR 0x27
+#define LCD_FPS 60
+
+#define TOTAL_SLOTS 6
+
+SPS_InfraredSensor infraredSensor(IR_CAR_1, IR_CAR_2, IR_CAR_3, IR_CAR_4, IR_CAR_5, IR_CAR_6, IR_ENTRY_FRONT, IR_ENTRY_BACK, IR_EXIT_FRONT, IR_EXIT_BACK);
+SPS_Display display(LCD_ADDR, LCD_FPS);
+SPS_Gate entryGate(SERVO_ENTER_PIN, SERVO_DELAY_MS);
+SPS_Gate exitGate(SERVO_EXIT_PIN, SERVO_DELAY_MS);
+
+bool hasSlot;
+int slotStates[TOTAL_SLOTS];
+
+bool isEntryFrontSensorDetected;
+bool isEntryBackSensorDetected;
+bool isExitFrontSensorDetected;
+bool isExitBackSensorDetected;
 
 void setup() {
-    Serial.begin(9600);
-    infraredSensor.init();
-    display.init();
+  hasSlot = true;
 
-    servoLeft.attach(3);
-    servoLeft.write(35);
-    servoRight.attach(12);
-    servoRight.write(90);
+  isEntryFrontSensorDetected = false;
+  isEntryBackSensorDetected = false;
+  isExitFrontSensorDetected = false;
+  isExitBackSensorDetected = false;
+
+  infraredSensor.init();
+  display.init();
+  entryGate.init();
+  exitGate.init();
 }
 
 void loop() {
-    Read_Sensor();
+  readSensor();
+  render();
 
-    display.render(slotState[0], slotState[1], slotState[2], slotState[3], slotState[4], slotState[5])
-    
+  if (getEntryGateState() == OPEN) {
+    entryGate.open();
+  } else {
+    entryGate.close();
+  }
 
-    // up barrier : TODO
-    if (digitalRead(ir_enter1) == 0 && digitalRead(ir_enter2) == 1) {
-      if (slot > 0) {
-        Serial.println(" Up ");
-        servoLeft.write(35); 
-      } else {
-        lcd.setCursor(0, 0);
-        lcd.print(" Sorry Parking Full ");  
-        delay(1500);
-      }   
-    }
-
-    if (digitalRead(ir_back1) == 0 && digitalRead(ir_back2) == 1) {
-      servoRight.write(180); 
-    }
-
-
-    // down barrier : TODO
-    if (digitalRead(ir_enter1) == 1 && digitalRead(ir_enter2) == 1) {
-      Serial.println(" Down ");
-      servoLeft.write(135);
-    }
-
-    if (digitalRead(ir_back1) == 1 && digitalRead(ir_enter2) == 1) {
-      servoRight.write(90);
-    }
-
-    delay(1000);
+  if (getExitGateState() == OPEN) {
+    exitGate.open();
+  } else {
+    exitGate.close();
+  }
 }
 
-void Read_Sensor() {
-    slot = 6;
+int getEntryGateState() {
+  if (hasSlot && (isEntryFrontSensorDetected || isEntryBackSensorDetected)) {
+    return OPEN;
+  }
 
-    slotState = infraredSensor.getSlotState();
-    enterState = infraredSensor.getEnterState();
-    exitState = infraredSensor.getExitState();
-    
-    for(int i=0; i<6; i++){
-      slot = slot - slotState[i];
-    }
+  return CLOSE;
+}
+
+int getExitGateState() {
+  if (isExitFrontSensorDetected || isExitBackSensorDetected) {
+    return OPEN;
+  }
+
+  return CLOSE;
+}
+
+void readSensor() {
+  int slotsLeft = TOTAL_SLOTS;
+
+  for (int i = 0; i < 6; i++) {
+    slotStates[i] = infraredSensor.isParkingSensorDetected(i) ? 1 : 0;
+    slotsLeft = slotsLeft - slotStates[i];
+  }
+
+  hasSlot = slotsLeft > 0;
+
+  isEntryFrontSensorDetected = infraredSensor.isEntryFrontSensorDetected();
+  isEntryBackSensorDetected = infraredSensor.isEntryBackSensorDetected();
+  isExitFrontSensorDetected = infraredSensor.isExitFrontSensorDetected();
+  isExitBackSensorDetected = infraredSensor.isExitBackSensorDetected();
+}
+
+void render() {
+  display.render(slotStates[0], slotStates[1], slotStates[2], slotStates[3], slotStates[4], slotStates[5]);
 }

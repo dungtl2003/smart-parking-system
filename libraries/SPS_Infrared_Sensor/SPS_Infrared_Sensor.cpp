@@ -1,46 +1,51 @@
 #include "SPS_Infrared_Sensor.h"
 #include <Arduino.h>
 
-SPS_InfraredSensor::SPS_InfraredSensor(int irCar1, int irCar2, int irCar3, int irCar4, int irCar5, int irCar6, int irEnter, int irExit) {
-    parkingSensors[0] = irCar1;
-    parkingSensors[1] = irCar2;
-    parkingSensors[2] = irCar3;
-    parkingSensors[3] = irCar4;
-    parkingSensors[4] = irCar5;
-    parkingSensors[5] = irCar6;
-    enterSensor = irEnter;
-	exitSensor = irExit;	
+#define DETECTED 0
+#define NOT_DETECTED 1
+
+SPS_InfraredSensor::SPS_InfraredSensor(int irCar1, int irCar2, int irCar3,
+                                       int irCar4, int irCar5, int irCar6,
+                                       int irEntryFront, int irEntryBack,
+                                       int irExitFront, int irExitBack)
+    : entryFrontSensor(irEntryFront), entryBackSensor(irEntryBack),
+      exitFrontSensor(irExitFront),
+      exitBackSensor(irExitBack), parkingSensors{irCar1, irCar2, irCar3,
+                                                 irCar4, irCar5, irCar6} {}
+
+void SPS_InfraredSensor::init() {
+  pinMode(parkingSensors[0], INPUT);
+  pinMode(parkingSensors[1], INPUT);
+  pinMode(parkingSensors[2], INPUT);
+  pinMode(parkingSensors[3], INPUT);
+  pinMode(parkingSensors[4], INPUT);
+  pinMode(parkingSensors[5], INPUT);
+  pinMode(entryFrontSensor, INPUT);
+  pinMode(entryBackSensor, INPUT);
+  pinMode(exitFrontSensor, INPUT);
+  pinMode(exitBackSensor, INPUT);
 }
 
-void SPS_InfraredSensor::init(){
-    pinMode(parkingSensors[0], INPUT);
-    pinMode(parkingSensors[1], INPUT);
-    pinMode(parkingSensors[2], INPUT);
-    pinMode(parkingSensors[3], INPUT);
-    pinMode(parkingSensors[4], INPUT);
-    pinMode(parkingSensors[5], INPUT);
-    pinMode(enterSensor, INPUT);
-    pinMode(exitSensor, INPUT);
+bool SPS_InfraredSensor::isParkingSensorDetected(int i) {
+  if (i < 0 || i >= TOTAL_PARKING_SLOTS) {
+    return false;
+  }
+
+  return digitalRead(parkingSensors[i]) == DETECTED;
 }
 
-int* SPS_InfraredSensor::getSlotState()  {
-    for (int i = 0; i < 6; ++i) {
-        slotState[i] = 0;
-    }
-
-    if (digitalRead(parkingSensors[0]) == 0) slotState[0] = 1;
-    if (digitalRead(parkingSensors[1]) == 0) slotState[1] = 1;
-    if (digitalRead(parkingSensors[2]) == 0) slotState[2] = 1;
-    if (digitalRead(parkingSensors[3]) == 0) slotState[3] = 1;
-    if (digitalRead(parkingSensors[4]) == 0) slotState[4] = 1;
-    if (digitalRead(parkingSensors[5]) == 0) slotState[5] = 1;
-    return slotState;
+bool SPS_InfraredSensor::isEntryFrontSensorDetected() {
+  return digitalRead(entryFrontSensor) == DETECTED;
 }
 
-int SPS_InfraredSensor::getEnterState() {
-    return digitalRead(enterSensor) == 0 ? 1 : 0;
+bool SPS_InfraredSensor::isEntryBackSensorDetected() {
+  return digitalRead(entryBackSensor) == DETECTED;
 }
 
-int SPS_InfraredSensor::getExitState() {
-    return digitalRead(exitSensor) == 0 ? 1 : 0;
+bool SPS_InfraredSensor::isExitFrontSensorDetected() {
+  return digitalRead(exitFrontSensor) == DETECTED;
+}
+
+bool SPS_InfraredSensor::isExitBackSensorDetected() {
+  return digitalRead(exitBackSensor) == DETECTED;
 }

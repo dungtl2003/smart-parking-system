@@ -2,8 +2,7 @@
 #include "SPS_Gate.h"
 
 SPS_Gate::SPS_Gate(int servoPin, int delayInMs)
-    : servoPin(servoPin), delayInMs(delayInMs), position(MIN_DEGREE),
-      preMovementTime(-1) {}
+    : servoPin(servoPin), delayInMs(delayInMs), preMovementTime(-1) {}
 
 SPS_Gate::SPS_Gate(int servoPin, int delayInMs, int maxDegree, int minDegree,
                    int speed)
@@ -13,10 +12,12 @@ SPS_Gate::SPS_Gate(int servoPin, int delayInMs, int maxDegree, int minDegree,
 
 void SPS_Gate::init() {
   servo.attach(servoPin);
-  servo.write(MIN_DEGREE);
+  servo.write(MAX_DEGREE); // nguoc
 }
 
-void SPS_Gate::open() {
+void SPS_Gate::close() { // do lap nguoc
+
+  int position = servo.read();
   if (position == MAX_DEGREE) {
     return;
   }
@@ -36,7 +37,9 @@ void SPS_Gate::open() {
   preMovementTime = now;
 }
 
-void SPS_Gate::close() {
+void SPS_Gate::open() {
+
+  int position = servo.read();
   if (position == MIN_DEGREE) {
     return;
   }

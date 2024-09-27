@@ -3,9 +3,6 @@
 #include <SPS_Infrared_Sensor.h>
 #include <SPS_RFID_Scanner.h>
 
-// CONFIG
-#define USE_RFID true
-
 #define OPEN 1
 #define CLOSE 0
 
@@ -20,27 +17,27 @@
 #define IR_EXIT_FRONT 30
 #define IR_EXIT_BACK 31
 
-#define SERVO_ENTER_PIN 32
-#define SERVO_EXIT_PIN 33
+#define SERVO_ENTER_PIN 9
+#define SERVO_EXIT_PIN 8
 #define SERVO_DELAY_MS 0
 
-// cannot use 8, 9, 10, 11 (for rfid)
-#define RFID_ENTER_SS_PIN 53
-#define RFID_ENTER_RST_PIN 5
-#define RFID_EXIT_SS_PIN 34
-#define RFID_EXIT_RST_PIN 35
+#define RFID_ENTER_SS_PIN 49
+#define RFID_ENTER_RST_PIN 48
+//#define RFID_EXIT_SS_PIN 53
+//#define RFID_EXIT_RST_PIN 46
 
 #define LCD_ADDR 0x27
-#define LCD_FPS 60
+#define LCD_FPS 45
 
 #define TOTAL_SLOTS 6
 
 SPS_InfraredSensor infraredSensor(IR_CAR_1, IR_CAR_2, IR_CAR_3, IR_CAR_4, IR_CAR_5, IR_CAR_6, IR_ENTRY_FRONT, IR_ENTRY_BACK, IR_EXIT_FRONT, IR_EXIT_BACK);
 SPS_Display display(LCD_ADDR, LCD_FPS);
 SPS_Gate entryGate(SERVO_ENTER_PIN, SERVO_DELAY_MS);
+//SPS_Gate entryGate(SERVO_ENTER_PIN, SERVO_DELAY_MS, 90);
 SPS_Gate exitGate(SERVO_EXIT_PIN, SERVO_DELAY_MS);
+//SPS_RFID_Scanner exitScanner(RFID_EXIT_SS_PIN, RFID_ENTER_RST_PIN);
 SPS_RFID_Scanner entryScanner(RFID_ENTER_SS_PIN, RFID_ENTER_RST_PIN);
-SPS_RFID_Scanner exitScanner(RFID_EXIT_SS_PIN, RFID_EXIT_RST_PIN);
 
 bool hasSlot;
 int slotStates[TOTAL_SLOTS];
@@ -51,7 +48,7 @@ bool isExitFrontSensorDetected;
 bool isExitBackSensorDetected;
 
 bool isValidCardDetectedEntry;
-bool isValidCardDetectedExit;
+//bool isValidCardDetectedExit;
 
 bool currentEntryGateStatus;
 bool currentExitGateStatus;
@@ -67,7 +64,7 @@ void setup() {
 
   isValidCardDetectedEntry = false;
 
-  unsigned char** validUIDs = new unsigned char*[4];  // 4 rows
+  unsigned char** validUIDs = new unsigned char*[6];  // 6 rows
 
   // Allocate memory for each row and populate the array
   validUIDs[0] = new unsigned char[4]{ 0x6D, 0xE2, 0xD7, 0x21 };  // Thẻ 1
@@ -80,11 +77,14 @@ void setup() {
   infraredSensor.init();
   display.init();
   entryGate.init();
-  exitGate.init();
   entryScanner.init(validUIDs, 6);
+  //exitGate.init();
+  //exitScanner.init(validUIDs, 6);
 }
 
 void loop() {
+         //     Serial.println("==============");
+
   readSensor();
   render();
 
@@ -99,18 +99,22 @@ void loop() {
   } else {
     exitGate.close();
   }
+             // Serial.println("==============");
+
 }
 
 void updateEntryGateStatus() {
   if (currentEntryGateStatus == OPEN) {
     if (!isEntryFrontSensorDetected && !isEntryBackSensorDetected) {
       currentEntryGateStatus = CLOSE;
+      entryScanner.clearCache();
     }
   } else {
     if (hasSlot && isValidCardDetectedEntry && isEntryFrontSensorDetected) {
       currentEntryGateStatus = OPEN;
     } else {
       currentEntryGateStatus = CLOSE;
+      entryScanner.clearCache();
     }
   }
 }
@@ -119,12 +123,14 @@ void updateExitGateStatus() {
   if (currentExitGateStatus == OPEN) {
     if (!isExitFrontSensorDetected && !isExitBackSensorDetected) {
       currentExitGateStatus = CLOSE;
+      //exitScanner.clearCache();
     }
   } else {
-    if (isValidCardDetectedExit && isExitFrontSensorDetected) {
+    if (isExitFrontSensorDetected) {
       currentExitGateStatus = OPEN;
     } else {
       currentExitGateStatus = CLOSE;
+      //exitScanner.clearCache();
     }
   }
 }
@@ -144,8 +150,8 @@ void readSensor() {
   isExitFrontSensorDetected = infraredSensor.isExitFrontSensorDetected();
   isExitBackSensorDetected = infraredSensor.isExitBackSensorDetected();
 
-  isValidCardDetectedEntry = !USE_RFID || entryScanner.isCardValid();
-  isValidCardDetectedExit = !USE_RFID || exitScanner.isCardValid();
+  isValidCardDetectedEntry = entryScanner.isCardValid();
+  //isValidCardDetectedExit = exitScanner.isCardValid();
 
   updateEntryGateStatus();
   updateExitGateStatus();

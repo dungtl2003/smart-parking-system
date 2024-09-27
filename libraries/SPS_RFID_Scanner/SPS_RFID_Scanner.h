@@ -9,6 +9,7 @@ public:
   SPS_RFID_Scanner(int ssPin, int rstPin);
   bool isCardValid();
   void init(byte **validUIDs, int totalValidUIDs);
+  void clearCache();
 
 private:
   MFRC522 rfid;

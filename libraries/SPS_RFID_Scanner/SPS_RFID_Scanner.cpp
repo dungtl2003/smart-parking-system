@@ -8,7 +8,7 @@ void SPS_RFID_Scanner::init(byte **validUIDs, int totalValidUIDs) {
   rfid.PCD_Init();
   delay(4);
   this->validUIDs = validUIDs;
-  totalValidUIDs = totalValidUIDs;
+  this->totalValidUIDs = totalValidUIDs;
   rfid.PCD_DumpVersionToSerial();
 }
 
@@ -22,7 +22,8 @@ bool SPS_RFID_Scanner::isCardValid() {
     return false;
   }
 
-  for (int i = 0; i < 4; i++) {
+  rfid.PICC_DumpToSerial(&(rfid.uid));
+  for (int i = 0; i < totalValidUIDs; i++) {
     bool match = true;
     for (byte j = 0; j < 4; j++) {
       if (rfid.uid.uidByte[j] != validUIDs[i][j]) {
@@ -40,4 +41,6 @@ bool SPS_RFID_Scanner::isCardValid() {
   isLastCardValid = false;
 
   return false;
-};
+}
+
+void SPS_RFID_Scanner::clearCache() { isLastCardValid = false; };

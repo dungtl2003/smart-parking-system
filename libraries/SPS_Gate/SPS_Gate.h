@@ -37,8 +37,8 @@ public:
 
 private:
   const int MAX_DEGREE = 90;
-  const int MIN_DEGREE = 5;
-  const int SPEED = 85;
+  const int MIN_DEGREE = 0;
+  const int SPEED = 90;
   int servoPin;
   Servo servo;
   int delayInMs;

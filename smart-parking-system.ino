@@ -78,13 +78,11 @@ void setup() {
   display.init();
   entryGate.init();
   entryScanner.init(validUIDs, 6);
-  //exitGate.init();
+  exitGate.init();
   //exitScanner.init(validUIDs, 6);
 }
 
 void loop() {
-         //     Serial.println("==============");
-
   readSensor();
   render();
 
@@ -99,8 +97,6 @@ void loop() {
   } else {
     exitGate.close();
   }
-             // Serial.println("==============");
-
 }
 
 void updateEntryGateStatus() {

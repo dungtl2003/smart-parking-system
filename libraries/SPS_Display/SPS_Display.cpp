@@ -20,8 +20,21 @@ void SPS_Display::init()
 
 void SPS_Display::render(int s1, int s2, int s3, int s4, int s5, int s6)
 {
+    long now = millis();
+    if (lastAnimationTime > -1)
+    {
+        long elapsed = now - lastAnimationTime;
+        long timeToWait = timeWindow - elapsed;
+        if (timeToWait > 0)
+        {
+            return;
+        }
+    }
+
     const int slotsLeft = 6 - s1 - s2 - s3 - s4 - s5 - s6;
+
     animate();
+    lastAnimationTime = now;
 
     lcd.setCursor(4, 0);
     lcd.print("Have slot: " + String(slotsLeft));
@@ -44,17 +57,6 @@ void SPS_Display::render(int s1, int s2, int s3, int s4, int s5, int s6)
 
 void SPS_Display::animate()
 {
-    long now = millis();
-    if (lastAnimationTime > -1)
-    {
-        long elapsed = now - lastAnimationTime;
-        long timeToWait = timeWindow - elapsed;
-        if (timeToWait > 0)
-        {
-            return;
-        }
-    }
-
     lcd.setCursor(0, 0);
     lcd.write(nextAnimation);
     lcd.setCursor(2, 0);
@@ -64,13 +66,12 @@ void SPS_Display::animate()
     lcd.setCursor(19, 0);
     lcd.write(nextAnimation);
     nextAnimation = (nextAnimation + 1) % 4;
-    lastAnimationTime = now;
 }
 
 void SPS_Display::printSlot(int slot, int state)
 {
-    char *buf = (char *)malloc(8 * sizeof(char));
-    snprintf(buf, 17, "S%d:%s", slot, state == 1 ? "Fill " : "Empty");
+    char *buf = (char *)malloc(9 * sizeof(char));
+    snprintf(buf, 9, "S%d:%s", slot, state == 1 ? "Fill " : "Empty");
 
     lcd.print(buf);
     free(buf);
